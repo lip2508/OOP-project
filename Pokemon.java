@@ -1,63 +1,122 @@
+/**
+ * Represents a Pokémon with attributes, battle stats, and growth mechanics
+ */
 public class Pokemon {
+    // Type constants
+    public static final String FIRE = "Fire";
+    public static final String WATER = "Water";
+    public static final String EARTH = "Earth";
+    
     private String name;
     private String type;
-    private String move;
-    private String defendType;
-    private String rarity;
+    private String move;  // Primary battle move (used in getStats())
     private int hp;
     private int maxHp;
     private int attack;
+    private int baseAttack;
     private int defense;
-    private int usageCount = 0;
+    private String rarity;
+    private int battlesWon;
+    private int tempAttackBoost = 0;
+    private int boostDuration = 0;
 
-    public Pokemon(String name, String type, String move, int hp, int attack, int defense, String rarity) {
+    /**
+     * Creates a new Pokémon
+     * @param name Pokémon's name
+     * @param type Elemental type (Fire/Water/Earth)
+     * @param move Primary battle move
+     * @param maxHp Maximum hit points
+     * @param attack Base attack power
+     * @param defense Base defense
+     * @param rarity Rarity category (Common/Uncommon/Rare)
+     */
+    public Pokemon(String name, String type, String move, int maxHp, int attack, int defense, String rarity) {
         this.name = name;
         this.type = type;
         this.move = move;
-        this.hp = hp;
-        this.maxHp = hp;
+        this.maxHp = maxHp;
+        this.hp = maxHp;
+        this.baseAttack = attack;
         this.attack = attack;
         this.defense = defense;
         this.rarity = rarity;
-        this.defendType = type; // for simplicity, defendType matches type
+        this.battlesWon = 0;
     }
 
-    public String getName() { return name; }
-    public int getHp() { return hp; }
-    public String getType() { return type; }
-    public String getMove() { return move; }
-    public String getRarity() { return rarity; }
-    public int getAttack() { return attack; }
-    public int getDefense() { return defense; }
-    public String getDefendType() { return defendType; }
-    public void increaseUsage() { usageCount++; if (usageCount >= 3) evolve(); }
-
-    public void setHp(int hp) {
-        this.hp = Math.min(hp, maxHp + 50); // cap at evolved max
-        if (this.hp < 0) this.hp = 0;
-    }
-
-    public void takeDamage(int dmg) {
-        int actualDmg = Math.max(dmg - defense, 1);
-        setHp(hp - actualDmg);
-        System.out.println(name + " takes " + actualDmg + " damage. Remaining HP: " + hp);
+    // Battle methods
+    public void takeDamage(int damage) {
+        hp = Math.max(hp - damage, 0);
     }
 
     public void heal(int amount) {
-        setHp(hp + amount);
-        System.out.println(name + " heals " + amount + " HP. Current HP: " + hp);
+        hp = Math.min(hp + amount, maxHp);
     }
 
-    public boolean isFainted() { return hp <= 0; }
+    public boolean isFainted() {
+        return hp <= 0;
+    }
+
+    /**
+     * Applies temporary attack boost
+     * @param amount Boost value
+     * @param duration Turns remaining
+     */
+    public void applyAttackBoost(int amount, int duration) {
+        this.tempAttackBoost = amount;
+        this.boostDuration = duration;
+        this.attack = baseAttack + amount;
+    }
+
+    /**
+     * Updates status effects at turn end
+     */
+    public void updateStatus() {
+        if (boostDuration > 0) {
+            boostDuration--;
+            if (boostDuration == 0) {
+                attack = baseAttack;
+                tempAttackBoost = 0;
+            }
+        }
+    }
+
+    /**
+     * Records battle victory and checks for evolution
+     */
+    public void recordVictory() {
+        battlesWon++;
+        if (battlesWon >= 3) {
+            evolve();
+        }
+    }
 
     private void evolve() {
-        System.out.println(name + " is evolving!");
-        this.maxHp += 50;
-        this.attack += 5;
-        this.hp = maxHp;
+        System.out.println("\n" + name + " is evolving!");
+        maxHp += 20;
+        baseAttack += 5;
+        defense += 5;
+        hp = maxHp;
+        System.out.println(name + "'s stats improved!");
     }
 
+    // Getters
+    public String getName() { return name; }
+    public String getType() { return type; }
+    public String getMove() { return move; }
+    public int getHp() { return hp; }
+    public int getMaxHp() { return maxHp; }
+    public int getAttack() { return attack; }
+    public int getDefense() { return defense; }
+    public String getRarity() { return rarity; }
+    public String getDefendType() { return type; }
+
+    /**
+     * @return Formatted stats string
+     */
     public String getStats() {
-        return name + " | Type: " + type + " | HP: " + hp + "/" + maxHp + " | Move: " + move + " | Rarity: " + rarity;
+        return String.format("%s (%s) | HP: %d/%d | ATK: %d%s | DEF: %d | Move: %s",
+            name, type, hp, maxHp,
+            attack, (tempAttackBoost > 0 ? "↑+" + tempAttackBoost : ""),
+            defense, move);
     }
 }

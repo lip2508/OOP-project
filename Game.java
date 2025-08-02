@@ -1,75 +1,136 @@
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.Scanner;
 
+/**
+ * Main game controller class
+ */
 public class Game {
-    private Scanner sc = new Scanner(System.in);
     private Player player;
-    private ArrayList<Pokemon> pokemonPool = new ArrayList<>();
-    private ScoreManager scoreManager = new ScoreManager();
-
+    private final List<Pokemon> pokemonPool;
+    private final List<Place> places;
+    private final ScoreManager scoreManager;
+    private final Scanner scanner;
+    private final Random random;
+    
+    public Game() {
+        this.scanner = new Scanner(System.in);
+        this.random = new Random();
+        this.pokemonPool = new ArrayList<>();
+        this.places = new ArrayList<>();
+        this.scoreManager = new ScoreManager();
+        initializeGame();
+    }
+    
+    private void initializeGame() {
+        // Create Pokémon
+        pokemonPool.add(new Pokemon("Charizard", Pokemon.FIRE, "Flamethrower", 78, 84, 78, "Rare"));
+        pokemonPool.add(new Pokemon("Blastoise", Pokemon.WATER, "Hydro Pump", 79, 83, 100, "Rare"));
+        pokemonPool.add(new Pokemon("Venusaur", Pokemon.EARTH, "Solar Beam", 80, 82, 83, "Rare"));
+        
+        // Create places
+        places.add(new Place("Volcano", new Weather(Weather.SUNNY)));
+        places.add(new Place("Ocean", new Weather(Weather.RAINY)));
+        places.add(new Place("Tundra", new Weather(Weather.HAIL)));
+        places.add(new Place("Desert", new Weather(Weather.SANDSTORM)));
+        places.add(new Place("Meadow", new Weather(Weather.CLEAR)));
+    }
+    
+    /**
+     * Main game loop
+     */
     public void start() {
+        System.out.println("===== POKÉMON GA-OLE =====");
+        createPlayer();
+        mainMenu();
+    }
+    
+    private void createPlayer() {
         System.out.print("Enter your name: ");
-        String name = sc.nextLine();
-        player = new Player(name);
-
-        generatePokemons(); // Add 5 sample Pokémon to choose from
-
-        System.out.println("\nChoose your 2 Pokémon:");
+        player = new Player(scanner.nextLine());
+        chooseStarters();
+    }
+    
+    private void chooseStarters() {
+        System.out.println("\nChoose 2 starter Pokémon:");
         for (int i = 0; i < 3; i++) {
-            System.out.println((i + 1) + ". " + pokemonPool.get(i).getStats());
+            System.out.println((i+1) + ". " + pokemonPool.get(i).getStats());
         }
-
-        for (int i = 0; i < 2; i++) {
-            System.out.print("Pick Pokémon number: ");
-            int pick = sc.nextInt();
-            player.addPokemon(pokemonPool.get(pick - 1));
-        }
-
-        player.chooseBattleTeam(sc);
-
-        Pokemon[] wilds = new Pokemon[] {pokemonPool.get(3), pokemonPool.get(4)};
-        Pokemon[] team = new Pokemon[] {player.getBattleTeam().get(0), player.getBattleTeam().get(1)};
-
-        Battle battle = new Battle(team, wilds);
-        int earned = battle.startBattle();
-        player.increaseScore(earned);
-
-        System.out.println("\nYour total score: " + player.getScore());
-        scoreManager.saveScore(player.getName(), player.getScore());
-        scoreManager.displayScores();
-
-        Pokeball ball = new Pokeball("common");
-        int attempts = 0;
-        boolean caught = false;
-
-        while (attempts < 2 && !caught) {
-            System.out.println("Attempting to catch " + wilds[0].getName() + " (Try " + (attempts + 1) + ")...");
-            caught = ball.tryCatch(wilds[0]);
-            if (caught) {
-                System.out.println("You caught " + wilds[0].getName() + "!");
-                player.addPokemon(wilds[0]);
-            } else {
-                System.out.println("Catch failed!");
-                attempts++;
+        
+        for (int selected = 0; selected < 2; ) {
+            System.out.print("Choose Pokémon " + (selected+1) + ": ");
+            try {
+                int choice = Integer.parseInt(scanner.nextLine()) - 1;
+                if (choice >= 0 && choice < 3) {
+                    player.addPokemon(pokemonPool.get(choice));
+                    selected++;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid choice!");
             }
         }
-
-        if (!caught) {
-            System.out.println(wilds[0].getName() + " escaped! You failed to catch it.");
+    }
+    
+    private void mainMenu() {
+        while (true) {
+            System.out.println("\n===== MAIN MENU =====");
+            System.out.println("1. Battle");
+            System.out.println("2. View Team");
+            System.out.println("3. Items");
+            System.out.println("4. Scores");
+            System.out.println("5. Exit");
+            System.out.print("Choice: ");
+            
+            switch (scanner.nextLine()) {
+                case "1": startBattle(); break;
+                case "2": displayTeam(); break;
+                case "3": player.useItem(scanner); break;
+                case "4": scoreManager.displayScores(); break;
+                case "5": return;
+                default: System.out.println("Invalid choice!");
+            }
         }
     }
-
-    // ✅ This method is now outside start(), as it should be
-    private void generatePokemons() {
-        pokemonPool.clear();
-        pokemonPool.add(new Pokemon("Terradillo", "Earth", "Rock Smash", 90, 20, 10, "common"));
-        pokemonPool.add(new Pokemon("Lavabite", "Fire", "Blaze Kick", 85, 22, 9, "rare"));
-        pokemonPool.add(new Pokemon("Aqualisk", "Water", "Water Pulse", 95, 18, 11, "common"));
-        pokemonPool.add(new Pokemon("Molterra", "Earth", "Mud Shot", 100, 21, 12, "rare"));
-        pokemonPool.add(new Pokemon("Hydrake", "Water", "Bubble Beam", 88, 20, 8, "legendary"));
+    
+    private void startBattle() {
+        Place place = places.get(random.nextInt(places.size()));
+        Pokemon wildPokemon = place.generateNativePokemon();
+        
+        System.out.println("\nYou encounter a wild " + wildPokemon.getName() + " at " + place.getName() + "!");
+        place.enter(player.getBattleTeam().get(0));
+        
+        Battle battle = new Battle(player, wildPokemon, place.getWeather());
+        int score = battle.start();
+        
+        if (score > 0) {
+            System.out.println("You earned " + score + " points!");
+            player.increaseScore(score);
+            scoreManager.saveScore(player.getName(), score);
+            
+            if (random.nextDouble() < 0.3) {
+                System.out.println("Found a Mystery Box!");
+                player.addItem(new MysteryBox());
+            }
+        }
+        
+        healTeam();
     }
-
+    
+    private void displayTeam() {
+        System.out.println("\n===== YOUR TEAM =====");
+        player.getBattleTeam().forEach(p -> {
+            System.out.println(p.getStats());
+        });
+        System.out.println("Coins: " + player.getCoins());
+    }
+    
+    private void healTeam() {
+        player.getBattleTeam().forEach(p -> p.heal(p.getMaxHp()));
+        System.out.println("Your team was healed!");
+    }
+    
     public static void main(String[] args) {
-        Game game = new Game();
-        game.start();
+        new Game().start();
     }
 }
