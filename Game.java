@@ -1,7 +1,6 @@
-// Main game engine that runs the flow of the game
-
 import java.util.*;
 
+// Main game engine that runs the flow of the game
 public class Game {
     private Scanner sc = new Scanner(System.in);
     private Player player;
@@ -30,8 +29,15 @@ public class Game {
         player.chooseBattleTeam(sc);
 
         // Prepare wild opponents
-        Pokemon[] wilds = new Pokemon[] {pokemonPool.get(3), pokemonPool.get(4)};
-        Pokemon[] team = new Pokemon[] {player.getBattleTeam().get(0), player.getBattleTeam().get(1)};
+        Pokemon[] wilds = new Pokemon[] {
+            pokemonPool.get(3),
+            pokemonPool.get(4)
+        };
+
+        Pokemon[] team = new Pokemon[] {
+            player.getBattleTeam().get(0),
+            player.getBattleTeam().get(1)
+        };
 
         // Start the battle
         Battle battle = new Battle(team, wilds);
@@ -43,13 +49,25 @@ public class Game {
         scoreManager.saveScore(player.getName(), player.getScore());
         scoreManager.displayScores();
 
-        // Catch logic
-        Pokeball ball = new Pokeball("rare");
-        if (battle.tryCatchPokemon(wilds[0], ball)) {
-            System.out.println("You caught " + wilds[0].getName() + "!");
-            player.addPokemon(wilds[0]);
-        } else {
-            System.out.println("Failed to catch " + wilds[0].getName());
+        // Catch logic with multiple attempts
+        Pokeball ball = new Pokeball("common");
+        int attempts = 0;
+        boolean caught = false;
+
+        while (attempts < 2 && !caught) {
+            System.out.println("Attempting to catch " + wilds[0].getName() + " (Try " + (attempts + 1) + ")...");
+            caught = ball.tryCatch(wilds[0]);
+            if (caught) {
+                System.out.println("You caught " + wilds[0].getName() + "!");
+                player.addPokemon(wilds[0]);
+            } else {
+                System.out.println("Catch failed!");
+                attempts++;
+            }
+        }
+
+        if (!caught) {
+            System.out.println(wilds[0].getName() + " escaped! You failed to catch it.");
         }
     }
 
