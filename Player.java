@@ -15,6 +15,7 @@ public class Player {
 
     /**
      * Creates a new player
+     * 
      * @param name Player's name
      */
     public Player(String name) {
@@ -28,6 +29,7 @@ public class Player {
 
     /**
      * Adds a Pokémon to collection
+     * 
      * @param pokemon Pokémon to add
      */
     public void addPokemon(Pokemon pokemon) {
@@ -39,6 +41,7 @@ public class Player {
 
     /**
      * Selects battle team via console
+     * 
      * @param scanner Input scanner
      */
     public void chooseBattleTeam(Scanner scanner) {
@@ -46,11 +49,11 @@ public class Player {
         System.out.println("\nChoose your 2 Pokémon:");
 
         for (int i = 0; i < inventory.size(); i++) {
-            System.out.println((i+1) + ". " + inventory.get(i).getStats());
+            System.out.println((i + 1) + ". " + inventory.get(i).getStats());
         }
 
         while (battleTeam.size() < 2) {
-            System.out.print("Select Pokémon " + (battleTeam.size()+1) + ": ");
+            System.out.print("Select Pokémon " + (battleTeam.size() + 1) + ": ");
             try {
                 int choice = Integer.parseInt(scanner.nextLine()) - 1;
                 if (choice >= 0 && choice < inventory.size()) {
@@ -71,23 +74,25 @@ public class Player {
 
     /**
      * Uses item from inventory
+     * 
      * @param scanner Input scanner
      */
     public void useItem(Scanner scanner) {
         if (items.isEmpty()) {
-            System.out.println("No items!");
+            System.out.println("No items! (You have " + coins + " coins)");
             return;
         }
 
-        System.out.println("\nItems:");
+        System.out.println("\nItems: (Coins: " + coins + ")");
         for (int i = 0; i < items.size(); i++) {
-            System.out.println((i+1) + ". " + items.get(i).getName());
+            System.out.println((i + 1) + ". " + items.get(i).getName());
         }
 
         System.out.print("Choose item (0 to cancel): ");
         try {
             int choice = Integer.parseInt(scanner.nextLine()) - 1;
-            if (choice == -1) return;
+            if (choice == -1)
+                return;
             if (choice >= 0 && choice < items.size()) {
                 Item item = items.remove(choice);
                 item.applyEffect(this, scanner);
@@ -98,11 +103,26 @@ public class Player {
     }
 
     // Getters and utility methods
-    public List<Pokemon> getBattleTeam() { return battleTeam; }
-    public String getName() { return name; }
-    public int getScore() { return score; }
-    public int getCoins() { return coins; }
-    public void addCoins(int amount) { coins += amount; }
+    public List<Pokemon> getBattleTeam() {
+        return battleTeam;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public int getCoins() {
+        return coins;
+    }
+
+    public void addCoins(int amount) {
+        coins += amount;
+    }
+
     public boolean deductCoins(int amount) {
         if (coins >= amount) {
             coins -= amount;
@@ -110,27 +130,33 @@ public class Player {
         }
         return false;
     }
+
     public void addItem(Item item) {
-    items.add(item);
-    System.out.println("Added " + item.getName() + " to inventory!");
-}
-    public void increaseScore(int points) { score += points; }
+        items.add(item);
+        System.out.println("Added " + item.getName() + " to inventory!");
+    }
+
+    public void increaseScore(int points) {
+        score += points;
+    }
 
     /**
      * Selects Pokémon from team
+     * 
      * @param scanner Input scanner
      * @return Selected Pokémon or null
      */
     public Pokemon selectPokemon(Scanner scanner) {
         System.out.println("\nChoose Pokémon:");
         for (int i = 0; i < battleTeam.size(); i++) {
-            System.out.println((i+1) + ". " + battleTeam.get(i).getStats());
+            System.out.println((i + 1) + ". " + battleTeam.get(i).getStats());
         }
 
         System.out.print("Selection (0 to cancel): ");
         try {
             int choice = Integer.parseInt(scanner.nextLine()) - 1;
-            if (choice == -1) return null;
+            if (choice == -1)
+                return null;
             if (choice >= 0 && choice < battleTeam.size()) {
                 return battleTeam.get(choice);
             }
