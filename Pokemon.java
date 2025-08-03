@@ -106,6 +106,7 @@ public class Pokemon {
     public int getHp() { return hp; }
     public int getMaxHp() { return maxHp; }
     public int getAttack() { return attack; }
+    public int getBaseAttack() {return baseAttack;}
     public int getDefense() { return defense; }
     public String getRarity() { return rarity; }
     public String getDefendType() { return type; }

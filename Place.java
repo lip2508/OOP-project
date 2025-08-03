@@ -20,15 +20,15 @@ public class Place {
     public Pokemon generateNativePokemon() {
         switch (name.toLowerCase()) {
             case "volcano":
-                return new Pokemon("Magmar", Pokemon.FIRE, "Lava Plume", 110, 45, 40, "Uncommon");
+                return new Pokemon("Magmar", Pokemon.FIRE, "Lava Plume", 110, 65, 50, "Uncommon");
             case "ocean":
-                return new Pokemon("Gyarados", Pokemon.WATER, "Aqua Tail", 120, 50, 35, "Uncommon");
+                return new Pokemon("Gyarados", Pokemon.WATER, "Aqua Tail", 120, 60, 45, "Uncommon");
             case "tundra":
-                return new Pokemon("Glalie", Pokemon.WATER, "Ice Fang", 105, 48, 42, "Uncommon");
+                return new Pokemon("Glalie", Pokemon.WATER, "Ice Fang", 105, 58, 52, "Uncommon");
             case "desert":
-                return new Pokemon("Sandslash", Pokemon.EARTH, "Earthquake", 115, 52, 45, "Uncommon");
+                return new Pokemon("Sandslash", Pokemon.EARTH, "Earthquake", 115, 62, 65, "Uncommon");
             default: // Meadow
-                return new Pokemon("Fearow", Pokemon.EARTH, "Drill Peck", 100, 40, 38, "Common");
+                return new Pokemon("Fearow", Pokemon.EARTH, "Drill Peck", 100, 60, 52, "Common");
         }
     }
 
