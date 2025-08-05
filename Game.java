@@ -122,7 +122,8 @@ public class Game {
             System.out.println("3. Ultra Ball - " + ATTACK_BOOST_PRICE + " coins");
             System.out.println("4. Health Potion - 20 coins");
             System.out.println("5. Attack Boost - 30 coins");
-            System.out.println("6. Back to Menu");
+            System.out.println("6. Mystery Box - 50 coins");
+            System.out.println("7. Back to Menu");
             System.out.print("Choice: ");
 
             String choice = scanner.nextLine();
@@ -160,6 +161,14 @@ public class Game {
                     }
                     break;
                 case "6":
+                    if (player.deductCoins(50)) {
+                        player.addItem(new MysteryBox());
+                        System.out.println("Purchased Mystery Box!");
+                    } else {
+                        System.out.println("Not enough coins!");
+                    }
+                    break;
+                case "7":
                     return;
                 default:
                     System.out.println("Invalid choice!");
@@ -218,20 +227,17 @@ public class Game {
         try {
             int choice = Integer.parseInt(scanner.nextLine());
             if (choice == 1) {
+                // Find any Poké Ball
                 Optional<Item> ball = player.getItems().stream()
                         .filter(i -> i instanceof Pokeball)
                         .findFirst();
 
                 if (ball.isPresent()) {
-                    if (((Pokeball) ball.get()).tryCatch(wildPokemon)) {
-                        // Create a NEW copy of the Pokémon
-                        Pokemon caughtPokemon = new Pokemon(wildPokemon);
-                        player.addPokemon(caughtPokemon);
-                        player.getItems().remove(ball.get());
-                        System.out.println("Gotcha! " + caughtPokemon.getName() + " was caught!");
-                    } else {
-                        System.out.println("Oh no! The Pokémon broke free!");
-                    }
+                    // Create a NEW copy of the Pokémon
+                    Pokemon caughtPokemon = new Pokemon(wildPokemon);
+                    player.addPokemon(caughtPokemon);
+                    player.getItems().remove(ball.get());
+                    System.out.println("Gotcha! " + caughtPokemon.getName() + " was caught!");
                 } else {
                     System.out.println("You don't have any Poké Balls!");
                 }
