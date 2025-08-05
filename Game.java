@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -116,39 +117,58 @@ public class Game {
         while (true) {
             System.out.println("\n===== POKéSHOP =====");
             System.out.println("Coins: " + player.getCoins());
-            System.out.println("1. Mystery Box - " + MYSTERY_BOX_PRICE + " coins");
-            System.out.println("2. Health Potion - " + HEALTH_POTION_PRICE + " coins");
-            System.out.println("3. Attack Boost - " + ATTACK_BOOST_PRICE + " coins");
-            System.out.println("4. Back to Menu");
+            System.out.println("1. Poké Ball - " + MYSTERY_BOX_PRICE + " coins");
+            System.out.println("2. Great Ball - " + HEALTH_POTION_PRICE + " coins");
+            System.out.println("3. Ultra Ball - " + ATTACK_BOOST_PRICE + " coins");
+            System.out.println("4. Health Potion - 20 coins");
+            System.out.println("5. Attack Boost - 30 coins");
+            System.out.println("6. Mystery Box - 50 coins");
+            System.out.println("7. Back to Menu");
             System.out.print("Choice: ");
 
             String choice = scanner.nextLine();
             switch (choice) {
                 case "1":
                     if (player.deductCoins(MYSTERY_BOX_PRICE)) {
-                        player.addItem(new MysteryBox());
-                        System.out.println("Purchased Mystery Box!");
+                        player.addItem(new Pokeball("Poké"));
+                        System.out.println("Purchased Poké Ball!");
                     } else {
                         System.out.println("Not enough coins!");
                     }
                     break;
                 case "2":
                     if (player.deductCoins(HEALTH_POTION_PRICE)) {
-                        player.addItem(new HealthPotion(30));
-                        System.out.println("Purchased Health Potion!");
-                    } else {
-                        System.out.println("Not enough coins!");
+                        player.addItem(new Pokeball("Great"));
+                        System.out.println("Purchased Great Ball!");
                     }
                     break;
                 case "3":
                     if (player.deductCoins(ATTACK_BOOST_PRICE)) {
+                        player.addItem(new Pokeball("Ultra"));
+                        System.out.println("Purchased Ultra Ball!");
+                    }
+                    break;
+                case "4":
+                    if (player.deductCoins(20)) {
+                        player.addItem(new HealthPotion(30));
+                        System.out.println("Purchased Health Potion!");
+                    }
+                    break;
+                case "5":
+                    if (player.deductCoins(30)) {
                         player.addItem(new AttackBoost(15, 3));
                         System.out.println("Purchased Attack Boost!");
+                    }
+                    break;
+                case "6":
+                    if (player.deductCoins(50)) {
+                        player.addItem(new MysteryBox());
+                        System.out.println("Purchased Mystery Box!");
                     } else {
                         System.out.println("Not enough coins!");
                     }
                     break;
-                case "4":
+                case "7":
                     return;
                 default:
                     System.out.println("Invalid choice!");
@@ -191,17 +211,51 @@ public class Game {
                 System.out.println("\nYou found a FREE Mystery Box!");
                 player.addItem(new MysteryBox());
             }
+
+            if (wildPokemon.isFainted()) {
+                attemptCatch(wildPokemon);
+            }
         }
 
         healTeam();
     }
 
+    private void attemptCatch(Pokemon wildPokemon) {
+        System.out.println("\nWould you like to try to catch " + wildPokemon.getName() + "?");
+        System.out.println("1. Yes\n2. No");
+
+        try {
+            int choice = Integer.parseInt(scanner.nextLine());
+            if (choice == 1) {
+                // Find any Poké Ball
+                Optional<Item> ball = player.getItems().stream()
+                        .filter(i -> i instanceof Pokeball)
+                        .findFirst();
+
+                if (ball.isPresent()) {
+                    // Create a NEW copy of the Pokémon
+                    Pokemon caughtPokemon = new Pokemon(wildPokemon);
+                    player.addPokemon(caughtPokemon);
+                    player.getItems().remove(ball.get());
+                    System.out.println("Gotcha! " + caughtPokemon.getName() + " was caught!");
+                } else {
+                    System.out.println("You don't have any Poké Balls!");
+                }
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid choice!");
+        }
+    }
+
     private void displayTeam() {
         System.out.println("\n===== YOUR TEAM =====");
-        player.getBattleTeam().forEach(p -> {
-            System.out.println(p.getStats());
-        });
-        System.out.println("Coins: " + player.getCoins());
+        System.out.println("-- Battle Team (Active) --");
+        player.getBattleTeam().forEach(p -> System.out.println(p.getStats()));
+
+        System.out.println("\n-- Caught Pokémon (" + player.getInventory().size() + ") --");
+        player.getInventory().stream()
+                .filter(p -> !player.getBattleTeam().contains(p)) // Only show non-active
+                .forEach(p -> System.out.println(p.getStats()));
     }
 
     private void healTeam() {
