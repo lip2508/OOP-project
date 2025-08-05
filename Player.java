@@ -32,11 +32,20 @@ public class Player {
      * 
      * @param pokemon Pokémon to add
      */
-    public void addPokemon(Pokemon pokemon) {
-        inventory.add(pokemon);
-        if (battleTeam.size() < 2) {
+
+    private ArrayList<Pokemon> storage = new ArrayList<>(); // For extra Pokémon
+
+    public boolean addPokemon(Pokemon pokemon) {
+        // Only add to inventory if it's a NEW catch (not starter)
+        if (!inventory.contains(pokemon)) {
+            inventory.add(pokemon);
+        }
+
+        // Auto-add to battle team if space exists
+        if (battleTeam.size() < 2 && !battleTeam.contains(pokemon)) {
             battleTeam.add(pokemon);
         }
+        return true;
     }
 
     /**
@@ -84,6 +93,23 @@ public class Player {
         }
 
         System.out.println("\nItems: (Coins: " + coins + ")");
+        int ballCount = 0, potionCount = 0, boostCount = 0;
+
+        for (Item item : items) {
+            if (item instanceof Pokeball)
+                ballCount++;
+            else if (item instanceof HealthPotion)
+                potionCount++;
+            else if (item instanceof AttackBoost)
+                boostCount++;
+        }
+
+        System.out.println("Poké Balls: " + ballCount);
+        System.out.println("Health Potions: " + potionCount);
+        System.out.println("Attack Boosts: " + boostCount);
+
+        System.out.print("Use which item? (0 to cancel): ");
+
         for (int i = 0; i < items.size(); i++) {
             System.out.println((i + 1) + ". " + items.get(i).getName());
         }
@@ -107,6 +133,10 @@ public class Player {
         return battleTeam;
     }
 
+    public ArrayList<Pokemon> getStorage() {
+        return storage;
+    }
+
     public String getName() {
         return name;
     }
@@ -117,6 +147,14 @@ public class Player {
 
     public int getCoins() {
         return coins;
+    }
+
+    public ArrayList<Item> getItems() {
+        return items;
+    }
+
+    public ArrayList<Pokemon> getInventory() {
+        return inventory;
     }
 
     public void addCoins(int amount) {

@@ -11,6 +11,7 @@ public class Battle {
     private final Weather weather;
     private final Scanner scanner;
     private final Random random;
+    private int turnCount; // Track turns for scoring
 
     // Effectiveness multipliers
     private static final double SUPER_EFFECTIVE = 1.5;
@@ -34,7 +35,7 @@ public class Battle {
         if (currentPokemon == null)
             return 0;
 
-        int turnCount = 0;
+        turnCount = 0;
         boolean playerRan = false;
 
         while (!wildPokemon.isFainted() && hasActivePokemon() && !playerRan) {
@@ -70,7 +71,6 @@ public class Battle {
                 }
             }
         }
-
         return concludeBattle(playerRan);
     }
 
@@ -123,8 +123,6 @@ public class Battle {
     }
 
     private int calculateDamage(Pokemon attacker, Pokemon defender) {
-        // Original formula was too easy (2 hits KO)
-        // New formula: damage = (attack * attack / (defense + 20)) + 5
         int base = (attacker.getAttack() * attacker.getAttack() / (defender.getDefense() + 20)) + 5;
         base = Math.max(1, base);
 
@@ -188,6 +186,37 @@ public class Battle {
         System.out.println("Wild " + wildPokemon.getName() + " attacks for " + damage + " damage!");
     }
 
+    private int calculateScore(boolean won) {
+        if (!won)
+            return 0;
+
+        int score = 100;
+
+        // HP Bonus (0-50 points)
+        double hpBonus = player.getBattleTeam().stream()
+                .filter(p -> !p.isFainted())
+                .mapToDouble(p -> (double) p.getHp() / p.getMaxHp())
+                .average().orElse(0) * 50;
+        score += hpBonus;
+
+        // Wild Pokémon difficulty (5-20 points)
+        int wildPower = (wildPokemon.getAttack() + wildPokemon.getDefense()) / 10;
+        score += wildPower;
+
+        // Turn penalty (-2 per turn)
+        score = Math.max(50, score - turnCount * 2);
+
+        // Debug output
+        System.out.println("\nDEBUG - Score Breakdown:");
+        System.out.println("- Base: 100");
+        System.out.println("- HP Bonus: " + (int) hpBonus);
+        System.out.println("- Wild Power: " + wildPower);
+        System.out.println("- Turns Taken: -" + (turnCount * 2));
+        System.out.println("- Final Score: " + score);
+
+        return score;
+    }
+
     private int concludeBattle(boolean ran) {
         if (wildPokemon.isFainted()) {
             System.out.println("You won!");
@@ -195,10 +224,7 @@ public class Battle {
                 if (!p.isFainted())
                     p.recordVictory();
             });
-            return 100 + (int) (player.getBattleTeam().stream()
-                    .filter(p -> !p.isFainted())
-                    .mapToDouble(p -> (double) p.getHp() / p.getMaxHp())
-                    .average().orElse(0) * 50);
+            return calculateScore(true);
         }
         return 0;
     }

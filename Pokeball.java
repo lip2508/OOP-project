@@ -1,18 +1,23 @@
-/**
- * Used to catch wild Pokémon (now standalone, not an Item)
- */
-public class Pokeball {
-    private final String type;
+import java.util.Scanner;
+
+public class Pokeball extends Item {
     private final double catchRate;
     
     public Pokeball(String type) {
-        this.type = type;
+        super(type + " Ball");
         this.catchRate = switch(type.toLowerCase()) {
             case "great" -> 0.6;
             case "ultra" -> 0.8;
             case "master" -> 1.0;
-            default -> 0.4;
+            default -> 0.4; // Regular Poké Ball
         };
+    }
+    
+    @Override
+    public void applyEffect(Player player, Scanner scanner) {
+        // This will be called during battle when trying to catch
+        System.out.println("Threw a " + getName() + "!");
+        // In battle, the wild Pokémon is passed differently - we'll modify this
     }
     
     public boolean tryCatch(Pokemon target) {
@@ -24,9 +29,5 @@ public class Pokeball {
         };
         double chance = catchRate * hpFactor * rarityFactor;
         return Math.random() < Math.max(0.1, Math.min(0.95, chance));
-    }
-    
-    public String getType() {
-        return type;
     }
 }
